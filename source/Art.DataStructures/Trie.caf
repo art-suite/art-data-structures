@@ -1,0 +1,95 @@
+import &ArtStandardLib
+
+class Trie
+
+  @compactTrieValues: compactTrieValues = (node, matchSoFar = '', limit = 5, out = []) ->
+    if out.length < limit
+      if node is Array
+        if node.length == 2
+          [run, subtrie] = node
+          compactTrieValues subtrie, matchSoFar + run, limit, out
+
+        else
+          [letters, subnodes...] = node
+          if subnodes.length > letters.length
+            out.push [matchSoFar, peek subnodes]
+
+          each letter, i in letters
+            compactTrieValues subnodes[i], matchSoFar + letter, limit, out
+
+      else
+        out.push [matchSoFar, node]
+    out
+
+  # OUT: [[key, value],...]
+  @compactTrieFind: compactTrieFind = (node, query, matchSoFar = '') ->
+    if node is Array
+      if node.length == 2
+        [run, subtrie] = node
+        if query.length > run.length
+          if run == query.slice 0, run.length
+            compactTrieFind
+              subtrie
+              query.slice run.length, query.length
+              matchSoFar + run
+          else
+            []
+        else if query.length == run.length
+          if query == run
+            compactTrieValues subtrie, matchSoFar + query
+          else
+            []
+        else if query == run.slice 0, query.length
+          compactTrieValues node, matchSoFar
+        else
+          []
+
+      else
+        [letters, subnodes...] = node
+        letter = query[0]
+        subquery = query.slice 1, query.length
+        if 0 <= i = letters.indexOf letter
+          compactTrieFind subnodes[i], subquery, matchSoFar + letters[i]
+
+        else
+          []
+
+    else if query.length == 0
+      [[matchSoFar, node]]
+
+  ##
+    Create Trie
+
+  @addAllToTree: (map, trie = {}) ->
+    each keys, value in map
+      each key in keys
+        addToTrie key, value, trie
+    trie
+
+  @addToTrie: addToTrie = (letters, value, trie = {}) ->
+    if letters is String
+      letters = letters.split ''
+    [first, rest...] = letters
+    subtrie = trie[first] ||= {}
+    if rest.length > 0
+      addToTrie rest, value, subtrie
+    else
+      subtrie.value = value
+    trie
+
+  @compactTrie: compactTrie = (trie) ->
+    if trie.value && 1 == objectKeyCount trie
+      trie.value
+    else
+      out = ['']
+      each subtrie, k in trie when k.length == 1
+        out[0] += k
+        out.push compactTrie subtrie
+
+      if v = trie.value
+        out.push v
+
+      if out.length == 2 && (subtrie = out[1]) is Array && subtrie.length == 2
+        [out[0] + subtrie[0], subtrie[1]]
+      else
+        out

@@ -1,0 +1,109 @@
+import &StandardImport
+# {} = require 'art-standard-lib'
+# https://www.tutorialspoint.com/data_structures_algorithms/heap_data_structure.htm
+
+defaultGetPriority = (a) -> a
+defineModule module, class PriorityHeap extends BaseClass
+  ###
+    PriorityHeap property:
+      every parent has a getProperty >= both its children
+
+    The root of the tree is @array[0], and is consider the "top"
+
+  ###
+    IN:
+      getPriority: (item) -> comparable with < and > operators
+      array: the initial array
+        NOTE: this will be mutated
+
+  constructor: (options)->
+    @getPriority = options?.getPriority ? defaultGetPriority
+    @array = options?.array ? []
+    @heapify() if @array.length > 0
+
+  # ensures all elements honor the heap property
+  heapify: -> array __, i in @array with @_siftUp i
+
+  ###
+    sort the array and return it
+    WARNING - this invalidates the heap!
+      If you want to use it again as a heap, call @heapify
+  sort: ->
+    i = @array.length - 1
+    while i >= 0
+      item = @array[i]
+      @array[i] = @array[0]
+      @array[0] = item
+      @_siftDown 0, i
+      i--
+
+  push: (item) ->
+    @array.push item
+    @_siftUp @array.length - 1
+
+  pop: ->
+    if @array.length > 1
+      [item] = @array
+      @array[0] = @array.pop()
+      @_siftDown 0
+      item
+    else
+      @array.pop()
+
+  peek: -> @array[0]
+
+  # OUT: if item was in the Heap, the index of where the item was is returned
+  remove: (item) ->
+    if 0 <= index = @array.indexOf item
+      @array[index] = @array.pop()
+      @updateIndex index
+      index
+
+  # OUT: the new index of the item, if the item was in the Heap
+  update: (item) ->
+    if 0 <= index = @array.indexOf item
+      @updateIndex index
+
+  # OUT: the new index of the item
+  updateIndex: (index) ->
+    @siftDown @_siftUp index
+
+  getParentIndex  = (index) -> (index - 1) >> 1
+  getChildIndex   = (index) -> 2 * index + 1
+
+
+  ###
+    EFFECT: move the item at index UP the tree until the heap property holds
+    NOTE: does NOT check if the heap property holds w.r.t. the initail children
+    OUT: the index where the item ended up
+  _siftUp: (index) ->
+    itemPriority = @getPriority item = @array[index]
+    while index > 0 &&
+        itemPriority > @getPriority parent = @array[parentIndex = getParentIndex index]
+
+      @array[index] = parent
+      index = parentIndex
+
+    @array[index] = item
+    index
+
+  ###
+    NOTE: does NOT check if the heap property holds w.r.t. the initial parent
+    EFFECT: the item at index is moved DOWN the tree until the heap property holds
+    OUT: the index where the item ended up
+  _siftDown: (index, length = @array.length) ->
+
+    itemPriority = @getPriority item = @array[childIndex = index]
+
+    # while there is a child with greater priority than itemPriority,
+    # move the child up one into its parent's slot
+    while (length > childIndex = getChildIndex index = childIndex) &&
+        itemPriority < @getPriority childIndex # left child
+        ||
+          length > childIndex += 1
+          && itemPriority < @getPriority childIndex # right child
+
+      @array[index] = @array[childIndex]
+
+    @array[index] = item
+    index

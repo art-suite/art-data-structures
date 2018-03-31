@@ -1,0 +1,87 @@
+import &StandardImport
+import Trie
+suite:
+  create: ->
+
+    wordsTrie = compactWordsTrie =null
+    setup ->
+      wordsTrie = addAllToTree
+        tag1: w "" thisisit
+        tag2: w "" thataint
+        tag3: w "" that
+        tag4: w "" thin women
+      compactWordsTrie = compactTrie wordsTrie
+
+    test 'addAllToTree' ->
+
+      assert.eq
+        wordsTrie
+        t:
+          h:
+            i:
+              s: i:     s: i: t: value: "tag1"
+              n: value: "tag4"
+
+            a:
+              t:
+                a:     i: n: t: value: "tag2"
+                value: "tag3"
+
+        w: o: m: e: n: value: "tag4"
+
+
+    test :compactTrie ->
+      assert.eq
+        compactWordsTrie
+        []
+          :tw
+          []
+            :h
+            []
+              :ia
+              []
+                :sn
+                :isit :tag1
+                :tag4
+
+              []
+                :t
+                []
+                  :a
+                  :int :tag2
+                  :tag3
+
+          :omen :tag4
+
+  find: ->
+    wordsTrie = compactWordsTrie =null
+    setup ->
+      wordsTrie = addAllToTree
+        tag1: w "" thisisit
+        tag2: w "" thataint
+        tag3: w "" that
+        tag4: w "" thin women
+      compactWordsTrie = compactTrie wordsTrie
+
+    test "compactTrieFind :that" ->
+      assert.eq
+        compactTrieFind compactWordsTrie, :that
+        []
+          :that     :tag3
+          :thataint :tag2
+
+    test "compactTrieFind :w" ->
+      assert.eq
+        compactTrieFind compactWordsTrie, :w
+        []
+          [] :women :tag4
+
+
+    test "compactTrieFind :t" ->
+      assert.eq
+        compactTrieFind compactWordsTrie, :t
+        []
+          :thisisit   :tag1
+          :thin       :tag4
+          :that       :tag3
+          :thataint   :tag2
