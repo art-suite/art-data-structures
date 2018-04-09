@@ -37,6 +37,12 @@ defineModule module, class PriorityHeap extends BaseClass
       @_siftDown 0, i
       i--
 
+    # TODO - when Caf supports "by", we can do this:
+    # each item in @array by -1
+    #   @array[i] = @array[0]
+    #   @array[0] = item
+    #   @_siftDown 0, i
+
   push: (item) ->
     @array.push item
     @_siftUp @array.length - 1
@@ -68,8 +74,8 @@ defineModule module, class PriorityHeap extends BaseClass
   updateIndex: (index) ->
     @siftDown @_siftUp index
 
-  getParentIndex  = (index) -> (index - 1) >> 1
-  getChildIndex   = (index) -> 2 * index + 1
+  getParent  = (index) -> (index - 1) >> 1
+  getLeftChild   = (index) -> 2 * index + 1
 
 
   ###
@@ -79,7 +85,7 @@ defineModule module, class PriorityHeap extends BaseClass
   _siftUp: (index) ->
     itemPriority = @getPriority item = @array[index]
     while index > 0 &&
-        itemPriority > @getPriority parent = @array[parentIndex = getParentIndex index]
+        itemPriority > @getPriority parent = @array[parentIndex = getParent index]
 
       @array[index] = parent
       index = parentIndex
@@ -91,13 +97,16 @@ defineModule module, class PriorityHeap extends BaseClass
     NOTE: does NOT check if the heap property holds w.r.t. the initial parent
     EFFECT: the item at index is moved DOWN the tree until the heap property holds
     OUT: the index where the item ended up
+
+    HOW:
+      While there is a child with greater priority than itemPriority,
+      move the child up one into its parent's slot
+
   _siftDown: (index, length = @array.length) ->
 
     itemPriority = @getPriority item = @array[childIndex = index]
 
-    # while there is a child with greater priority than itemPriority,
-    # move the child up one into its parent's slot
-    while (length > childIndex = getChildIndex index = childIndex) &&
+    while (length > childIndex = getLeftChild index = childIndex) &&
         itemPriority < @getPriority childIndex # left child
         ||
           length > childIndex += 1
